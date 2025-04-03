@@ -1981,6 +1981,7 @@ void
 MainWindow::on_actionDebugger_triggered()
 {
 	debugger = new Debugger(this);
+	debugger->setWindowTitle("Debugger");
     debugger->show();
 }
 
