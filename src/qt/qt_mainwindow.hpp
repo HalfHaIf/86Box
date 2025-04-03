@@ -119,6 +119,7 @@ private slots:
     void on_actionTake_screenshot_triggered();
     void on_actionSound_gain_triggered();
     void on_actionPreferences_triggered();
+	void on_actionDebugger_triggered();
     void on_actionEnable_Discord_integration_triggered(bool checked);
     void on_actionRenderer_options_triggered();
 
@@ -183,6 +184,7 @@ private:
     friend class RendererCommon;
     friend class RendererStack; // For UI variable access by non-primary renderer windows.
     friend class WindowsRawInputFilter; // Needed to reload renderers on style sheet changes.
+	friend class Debugger;
 
     
     bool isShowMessage = false;

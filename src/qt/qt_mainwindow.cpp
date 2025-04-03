@@ -29,6 +29,7 @@
 #include "qt_soundgain.hpp"
 #include "qt_progsettings.hpp"
 #include "qt_mcadevicelist.hpp"
+#include "qt_debugger.hpp"
 
 #include "qt_rendererstack.hpp"
 #include "qt_renderercommon.hpp"
@@ -163,6 +164,8 @@ extern void     qt_mouse_capture(int);
 extern "C" void qt_blit(int x, int y, int w, int h, int monitor_index);
 
 extern MainWindow *main_window;
+
+Debugger *debugger;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -1972,6 +1975,13 @@ MainWindow::on_actionPreferences_triggered()
 {
     ProgSettings progsettings(this);
     progsettings.exec();
+}
+
+void
+MainWindow::on_actionDebugger_triggered()
+{
+	debugger = new Debugger(this);
+    debugger->show();
 }
 
 void

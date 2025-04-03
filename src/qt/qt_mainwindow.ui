@@ -54,7 +54,7 @@
      <x>0</x>
      <y>0</y>
      <width>724</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAction">
@@ -96,7 +96,7 @@
     <addaction name="actionSound_gain"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
-    <addaction name="separator"/>
+    <addaction name="actionDebugger"/>
     <addaction name="actionBegin_trace"/>
     <addaction name="actionEnd_trace"/>
     <addaction name="separator"/>
@@ -884,6 +884,11 @@
    </property>
    <property name="text">
     <string>Pen</string>
+   </property>
+  </action>
+  <action name="actionDebugger">
+   <property name="text">
+    <string>Debugger...</string>
    </property>
   </action>
  </widget>

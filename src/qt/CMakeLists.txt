@@ -197,6 +197,10 @@ add_library(ui STATIC
 
     qt_iconindicators.hpp
     qt_iconindicators.cpp
+
+    qt_debugger.hpp
+    qt_debugger.cpp
+    qt_debugger.ui
 )
 
 if(RTMIDI)
