@@ -26,6 +26,7 @@
 #include <QFile>
 #include <QLibraryInfo>
 #include <QMap>
+#include <QMessageBox>
 #include <QPainter>
 #include <QString>
 #include <QTableWidget>
@@ -136,7 +137,7 @@ void Debugger::initRegsTable() {
 	//Get regsTable object
 	regstable = findChild<QTableWidget*>("regsTable");
 	
-	regstable->setRowCount(4);
+	regstable->setRowCount(0);
 	regstable->setColumnCount(2);
 	
 	regstable->verticalHeader()->setVisible(false);
@@ -144,10 +145,39 @@ void Debugger::initRegsTable() {
 	
 	//Init regs_map
 	regs_map = {
+		// Segments
+		{"CS", (void*)&CS},
+		{"DS", (void*)&DS},
+		{"ES", (void*)&ES},
+		{"SS", (void*)&SS},	
+		// i386+
+		{"FS", (void*)&FS},		
+		{"GS", (void*)&GS},	
+		
+		// 16-bit registers (8086/8088-286)
+		{"AX", (void*)&AX},
+		{"BX", (void*)&BX},
+		{"CX", (void*)&CX},
+		{"DX", (void*)&DX},
+		{"SP", (void*)&SP},
+		{"BP", (void*)&BP},
+		{"SI", (void*)&SI},
+		{"DI", (void*)&DI},		
+		
+		// 32-bit registers (i386+)
 		{"EAX", (void*)&EAX},
 		{"EBX", (void*)&EBX},
 		{"ECX", (void*)&ECX},
-		{"EDX", (void*)&EDX}
+		{"EDX", (void*)&EDX},
+		{"ESP", (void*)&ESP},
+		{"EBP", (void*)&EBP},
+		{"ESI", (void*)&ESI},
+		{"EDI", (void*)&EDI},
+		
+		// Misc.
+		{"IP", (void*)&cpu_state.pc},
+		{"FLAGS", (void*)&cpu_state.flags},
+		{"EFLAGS", (void*)&cpu_state.eflags},
 	};
 	return;
 }
@@ -255,6 +285,18 @@ void Debugger::updateRegsTable(QString reg_name, int reg_width) {
 	QString qstr_buf;
 	uint8_t originalnumber;
 	uint16_t number;
+	
+	if (!regs_map[reg_name]) {
+		QMessageBox::critical(this, "Error", "An error occured while processing the CPU registers.");
+		this->accept();
+	}
+		
+	
+	int rowcount = regstable->rowCount();
+	regstable->insertRow(rowcount);
+	
+	
+	
 	switch (reg_width) {
 		case 8:
 		originalnumber = *(uint8_t*)regs_map[reg_name];
@@ -268,19 +310,59 @@ void Debugger::updateRegsTable(QString reg_name, int reg_width) {
 		qstr_buf = QString::number(*(uint32_t*)regs_map[reg_name], 16);
 		break;
 	}
-	regstable->setItem(currentrow, 0, new QTableWidgetItem(reg_name));
-	regstable->setItem(currentrow, 1, new QTableWidgetItem(formatHexString(qstr_buf)));
-	currentrow++;
+	regstable->setItem(rowcount, 0, new QTableWidgetItem(reg_name));
+	regstable->setItem(rowcount, 1, new QTableWidgetItem(formatHexString(qstr_buf)));
+	
+	
 }
 
 void Debugger::drawRegs(QPaintEvent *event) {
-	currentrow = 0;
-	regstable->setRowCount(4);
-	updateRegsTable("EAX", 32);
-	updateRegsTable("EBX", 32);
-	updateRegsTable("ECX", 32);
-	updateRegsTable("EDX", 32);
 
+	// Add general-purpose registers
+	regstable->setRowCount(0);
+	
+	if (cpu_s->cpu_type < CPU_386SX) {
+		updateRegsTable("AX", 16);
+		updateRegsTable("BX", 16);
+		updateRegsTable("CX", 16);
+		updateRegsTable("DX", 16);
+		updateRegsTable("SP", 16);
+		updateRegsTable("BP", 16);
+		updateRegsTable("SI", 16);
+		updateRegsTable("DI", 16);		
+	} else {
+		updateRegsTable("EAX", 32);
+		updateRegsTable("EBX", 32);
+		updateRegsTable("ECX", 32);
+		updateRegsTable("EDX", 32);
+		updateRegsTable("ESP", 32);
+		updateRegsTable("EBP", 32);
+		updateRegsTable("ESI", 32);
+		updateRegsTable("EDI", 32);		
+	}
+	
+	
+	// Add misc registers (IP, FLAGS)
+	updateRegsTable("IP", 32);
+	updateRegsTable("FLAGS", 16);
+	
+	if (cpu_s->cpu_type >= CPU_386SX) {
+		updateRegsTable("EFLAGS", 16);
+	}
+	
+	// Add segments
+	updateRegsTable("CS", 16);
+	updateRegsTable("DS", 16);
+	updateRegsTable("ES", 16);
+	
+	if (cpu_s->cpu_type >= CPU_386SX) {
+		updateRegsTable("FS", 16);
+		updateRegsTable("GS", 16);
+	}
+	
+	updateRegsTable("SS", 16);
+		
+	//regstable->setRowCount(rowcount);
 	regstable->resizeRowsToContents();
 	regstable->resizeColumnsToContents();
 	return;

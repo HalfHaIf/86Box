@@ -167,9 +167,9 @@
       <widget class="QGroupBox" name="regsInfo">
        <property name="geometry">
         <rect>
-         <x>600</x>
+         <x>570</x>
          <y>0</y>
-         <width>111</width>
+         <width>141</width>
          <height>181</height>
         </rect>
        </property>
@@ -181,7 +181,7 @@
          <rect>
           <x>5</x>
           <y>21</y>
-          <width>101</width>
+          <width>131</width>
           <height>151</height>
          </rect>
         </property>

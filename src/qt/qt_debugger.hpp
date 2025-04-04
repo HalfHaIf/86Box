@@ -31,7 +31,6 @@ private:
 	QMap<QString, void*> regs_map;
 	QList<QLabel*> qlist_buf;
 	QTableWidget* regstable;
-	int currentrow;
 	
 	friend class MainWindow;
 	 
