@@ -91,7 +91,6 @@ const std::string cpunames[] = {
 	"AMD K6-2+",
 	"AMD K6-III+",
 	"Cyrix III",
-	"Cyrix III",
 	"Intel Pentium Pro",
 	"Intel Pentium II",
 	"Intel Pentium II OverDrive"
@@ -137,19 +136,19 @@ void Debugger::initRegsTable() {
 	//Get regsTable object
 	regstable = findChild<QTableWidget*>("regsTable");
 	
-	int rowcount = regstable->rowCount();
-	regstable->insertRow(rowcount);
+	regstable->setRowCount(4);
 	regstable->setColumnCount(2);
 	
 	regstable->verticalHeader()->setVisible(false);
 	regstable->horizontalHeader()->setVisible(false);
 	
-    regstable->setItem(rowcount, 0, new QTableWidgetItem("EAX"));
-    regstable->setItem(rowcount, 1, new QTableWidgetItem("0x00000001"));
-	
-	//TODO: When regstable is functional, run this after register table is filled out to make sure it looks right
-	regstable->resizeRowsToContents();
-	regstable->resizeColumnsToContents();
+	//Init regs_map
+	regs_map = {
+		{"EAX", (void*)&EAX},
+		{"EBX", (void*)&EBX},
+		{"ECX", (void*)&ECX},
+		{"EDX", (void*)&EDX}
+	};
 	return;
 }
 
@@ -165,7 +164,7 @@ Debugger::~Debugger()
 }
 
 // Format Hz and bytes
-QString Debugger::formatFrequency(uint32_t rspeed) {
+QString Debugger::formatFrequencyString(uint32_t rspeed) {
     const QStringList units = {"Hz", "kHz", "MHz", "GHz", "THz"};
     int unitIndex = 0;
     double value = rspeed;
@@ -178,10 +177,10 @@ QString Debugger::formatFrequency(uint32_t rspeed) {
     return QString("%1 %2").arg(value, 0, 'f', 2).arg(units[unitIndex]);
 }
 
-QString Debugger::formatBytes(uint32_t mem_size) {
+QString Debugger::formatByteString(uint32_t mem_size) {
     const QStringList units = {"B", "KB", "MB", "GB", "TB"};
     int unitIndex = 0;
-    double value = mem_size;
+    double value = mem_size * 1000.0;
 
     while (value >= 1000.0 && unitIndex < units.size() - 1) {
         value /= 1000.0;
@@ -191,36 +190,48 @@ QString Debugger::formatBytes(uint32_t mem_size) {
     return QString("%1 %2").arg(value, 0, 'f', 2).arg(units[unitIndex]);
 }
 
+QString Debugger::formatHexString(QString str) {
+	QString qstr_buf = str;
+	qstr_buf = qstr_buf.toUpper();
+	qstr_buf.prepend("0x");	
+	return qstr_buf;
+}
+
 void Debugger::drawCPUInfo(QPaintEvent *event) {
 	// Load buffer with initial string
 	QString qstr_buf = QString::fromStdString(cpunames[cpu_s->cpu_type - 1]);
 	
-	// Hmmm...
+	// CPUType
 	qstr_buf.prepend("CPU Type: ");
 	qstr_buf.append(" @ ");
-	qstr_buf.append(formatFrequency(cpu_s->rspeed));
+	qstr_buf.append(formatFrequencyString(cpu_s->rspeed));
 	
 	cpu_labels["CPUType"]->setText(qstr_buf);
 	
+	//FPUType
  	qstr_buf = QString::fromStdString(fpunames[fpu_type]);
 	qstr_buf.prepend("FPU Type: ");
 	cpu_labels["FPUType"]->setText(qstr_buf);
 	
+	//dynaRec
 	qstr_buf = QString::fromStdString(cpu_use_dynarec ? "On" : "Off");
 	qstr_buf.prepend("Dynamic recompiler: ");
 	
 	cpu_labels["dynaRec"]->setText(qstr_buf);
 	
+	//softFloatFPU
 	qstr_buf = QString::fromStdString(fpu_softfloat ? "On" : "Off");
 	qstr_buf.prepend("Softfloat FPU: ");
 	
 	cpu_labels["softFloatFPU"]->setText(qstr_buf);
 	
+	//PITMode
 	qstr_buf = QString::fromStdString(pit_mode ? "Slow" : "Fast");
 	qstr_buf.prepend("PIT mode: ");
 	
 	cpu_labels["PITMode"]->setText(qstr_buf);
 	
+	//waitStates
 	if (!cpu_waitstates)
 		qstr_buf = "Default";	
 	else	
@@ -229,18 +240,49 @@ void Debugger::drawCPUInfo(QPaintEvent *event) {
 	
 	cpu_labels["waitStates"]->setText(qstr_buf);
 	
-	qstr_buf = formatBytes(mem_size);
+	//memoryInfo
+	qstr_buf = formatByteString(mem_size);
 	qstr_buf.prepend("Memory: ");
 	qstr_buf.append(" of RAM (");
-	qstr_buf.append(QString::number(mem_size));
+	qstr_buf.append(QString::number(mem_size * 1000.0));
 	qstr_buf.append(" bytes )"); 
 	
 	cpu_labels["memoryInfo"]->setText(qstr_buf);
 	return;
 }
 
+void Debugger::updateRegsTable(QString reg_name, int reg_width) {
+	QString qstr_buf;
+	uint8_t originalnumber;
+	uint16_t number;
+	switch (reg_width) {
+		case 8:
+		originalnumber = *(uint8_t*)regs_map[reg_name];
+		number = (originalnumber & 0xFF);
+		qstr_buf = QString::number(number, 16);
+		break;
+		case 16:
+		qstr_buf = QString::number(*(uint16_t*)regs_map[reg_name], 16);
+		break;		
+		case 32:
+		qstr_buf = QString::number(*(uint32_t*)regs_map[reg_name], 16);
+		break;
+	}
+	regstable->setItem(currentrow, 0, new QTableWidgetItem(reg_name));
+	regstable->setItem(currentrow, 1, new QTableWidgetItem(formatHexString(qstr_buf)));
+	currentrow++;
+}
+
 void Debugger::drawRegs(QPaintEvent *event) {
-	//TODO
+	currentrow = 0;
+	regstable->setRowCount(4);
+	updateRegsTable("EAX", 32);
+	updateRegsTable("EBX", 32);
+	updateRegsTable("ECX", 32);
+	updateRegsTable("EDX", 32);
+
+	regstable->resizeRowsToContents();
+	regstable->resizeColumnsToContents();
 	return;
 }
 

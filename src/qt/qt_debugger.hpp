@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QLabel>
 #include <QMap>
+#include <QString>
 #include <QTableWidget>
 
 namespace Ui {
@@ -16,8 +17,9 @@ class Debugger : public QDialog {
 public:
     explicit Debugger(QWidget *parent = nullptr);
 	
-	QString formatFrequency(uint32_t rspeed);
-	QString formatBytes(uint32_t mem_size);
+	QString formatFrequencyString(uint32_t rspeed);
+	QString formatByteString(uint32_t mem_size);
+	QString formatHexString(QString str);
 	
     ~Debugger();
 protected slots:
@@ -26,8 +28,10 @@ protected slots:
 private:
     Ui::Debugger *ui;
 	QMap<QString, QLabel*> cpu_labels;
+	QMap<QString, void*> regs_map;
 	QList<QLabel*> qlist_buf;
 	QTableWidget* regstable;
+	int currentrow;
 	
 	friend class MainWindow;
 	 
@@ -35,6 +39,7 @@ private:
 	void drawCPUInfo(QPaintEvent *event);
 	void drawRegs(QPaintEvent *event);
 	void initRegsTable();
+	void updateRegsTable(QString reg_name, int reg_width);
 };
 
 #endif // QT_DEBUGGER_HPP
