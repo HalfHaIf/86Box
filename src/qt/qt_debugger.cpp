@@ -43,8 +43,7 @@ extern "C" {
 
 extern MainWindow            *main_window;
 
-QLabel *cputype;
-std::string cpunames[] = {
+const std::string cpunames[] = {
 	"Intel 8088",
 	"Intel 8086",
 	"Kyiv Research Institute of Microdevices K1810VM86",
@@ -97,6 +96,17 @@ std::string cpunames[] = {
 	"Intel Pentium II OverDrive"
 };
 
+const std::string fpunames[] = {
+	"None",
+	"Intel 8087",
+	"Intel 80187",
+	"Intel 287",
+	"Intel 287XL",
+	"Intel 387",
+	"Intel 487SX",
+	"Internal FPU"
+};
+
 Debugger::Debugger(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::Debugger)
@@ -105,7 +115,15 @@ Debugger::Debugger(QWidget *parent)
 	setModal(false);
     ui->setupUi(this);
 	
-	cputype = findChild<QLabel*>("cputype");
+	qlist_buf = findChildren<QLabel*>();
+	
+	// Copy the contents of qlist_buf (QList) to cpu_labels (QMap) so we can easily address it later 
+	for (QLabel* label : qlist_buf) {
+		if (!label->objectName().isEmpty()) {
+			cpu_labels[label->objectName()] = label;
+		}	
+	}
+
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&QWidget::update));
@@ -123,6 +141,7 @@ Debugger::~Debugger()
     delete ui;
 }
 
+// Format Hz and bytes
 QString Debugger::formatFrequency(uint32_t rspeed) {
     const QStringList units = {"Hz", "kHz", "MHz", "GHz", "THz"};
     int unitIndex = 0;
@@ -136,16 +155,69 @@ QString Debugger::formatFrequency(uint32_t rspeed) {
     return QString("%1 %2").arg(value, 0, 'f', 2).arg(units[unitIndex]);
 }
 
-void Debugger::paintEvent(QPaintEvent *event) {
-	QPainter painter(this);
-	
-	// Load with initial string
-	QString cpuname = QString::fromStdString(cpunames[cpu_s->cpu_type - 1]);
+QString Debugger::formatBytes(uint32_t mem_size) {
+    const QStringList units = {"B", "KB", "MB", "GB", "TB"};
+    int unitIndex = 0;
+    double value = mem_size;
+
+    while (value >= 1000.0 && unitIndex < units.size() - 1) {
+        value /= 1000.0;
+        unitIndex++;
+    }
+
+    return QString("%1 %2").arg(value, 0, 'f', 2).arg(units[unitIndex]);
+}
+
+void Debugger::drawCPUInfo(QPaintEvent *event) {
+	// Load buffer with initial string
+	QString qstr_buf = QString::fromStdString(cpunames[cpu_s->cpu_type - 1]);
 	
 	// Hmmm...
-	cpuname.prepend("CPU Type: ");
-	cpuname.append(" @ ");
-	cpuname.append(formatFrequency(cpu_s->rspeed));
+	qstr_buf.prepend("CPU Type: ");
+	qstr_buf.append(" @ ");
+	qstr_buf.append(formatFrequency(cpu_s->rspeed));
 	
-	cputype->setText(cpuname);
+	cpu_labels["CPUType"]->setText(qstr_buf);
+	
+ 	qstr_buf = QString::fromStdString(fpunames[fpu_type]);
+	qstr_buf.prepend("FPU Type: ");
+	cpu_labels["FPUType"]->setText(qstr_buf);
+	
+	qstr_buf = QString::fromStdString(cpu_use_dynarec ? "On" : "Off");
+	qstr_buf.prepend("Dynamic recompiler: ");
+	
+	cpu_labels["dynaRec"]->setText(qstr_buf);
+	
+	qstr_buf = QString::fromStdString(fpu_softfloat ? "On" : "Off");
+	qstr_buf.prepend("Softfloat FPU: ");
+	
+	cpu_labels["softFloatFPU"]->setText(qstr_buf);
+	
+	qstr_buf = QString::fromStdString(pit_mode ? "Slow" : "Fast");
+	qstr_buf.prepend("PIT mode: ");
+	
+	cpu_labels["PITMode"]->setText(qstr_buf);
+	
+	if (!cpu_waitstates)
+		qstr_buf = "Default";	
+	else	
+		qstr_buf = QString::number(cpu_waitstates - 1);
+	qstr_buf.prepend("Wait states: ");
+	
+	cpu_labels["waitStates"]->setText(qstr_buf);
+	
+	qstr_buf = formatBytes(mem_size);
+	qstr_buf.prepend("Memory: ");
+	qstr_buf.append(" of RAM (");
+	qstr_buf.append(QString::number(mem_size));
+	qstr_buf.append(" bytes )"); 
+	
+	cpu_labels["memoryInfo"]->setText(qstr_buf);
+	return;
+}
+
+void Debugger::paintEvent(QPaintEvent *event) {
+	QPainter painter(this);
+	drawCPUInfo(event);
+	return;
 }
