@@ -39,6 +39,8 @@ private:
 	void drawRegs(QPaintEvent *event);
 	void initRegsTable();
 	void updateRegsTable(QString reg_name, int reg_width);
+	
+	void on_pauseButton_clicked();
 };
 
 #endif // QT_DEBUGGER_HPP

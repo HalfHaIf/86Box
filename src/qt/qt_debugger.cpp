@@ -108,6 +108,13 @@ const std::string fpunames[] = {
 	"Internal FPU"
 };
 
+
+void Debugger::on_pauseButton_clicked() {
+	plat_pause(dopause ^ 1);
+	QIcon pause_icon = dopause ? QIcon(":/menuicons/qt/icons/run.ico") : QIcon(":/menuicons/qt/icons/pause.ico");
+	ui->pauseButton->setIcon(pause_icon);
+}
+
 Debugger::Debugger(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::Debugger)
@@ -126,6 +133,8 @@ Debugger::Debugger(QWidget *parent)
 	}
 	
 	initRegsTable();
+	
+	connect(ui->pauseButton, &QPushButton::clicked, this, &on_pauseButton_clicked);
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&QWidget::update));
