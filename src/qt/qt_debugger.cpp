@@ -28,6 +28,7 @@
 #include <QMap>
 #include <QPainter>
 #include <QString>
+#include <QTableWidget>
 #include <QTimer>
 
 extern "C" {
@@ -123,11 +124,33 @@ Debugger::Debugger(QWidget *parent)
 			cpu_labels[label->objectName()] = label;
 		}	
 	}
-
+	
+	initRegsTable();
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&QWidget::update));
     timer->start(16); // TODO: Implement option to be able to change redraw rate with dropdown box
+}
+
+void Debugger::initRegsTable() {
+	
+	//Get regsTable object
+	regstable = findChild<QTableWidget*>("regsTable");
+	
+	int rowcount = regstable->rowCount();
+	regstable->insertRow(rowcount);
+	regstable->setColumnCount(2);
+	
+	regstable->verticalHeader()->setVisible(false);
+	regstable->horizontalHeader()->setVisible(false);
+	
+    regstable->setItem(rowcount, 0, new QTableWidgetItem("EAX"));
+    regstable->setItem(rowcount, 1, new QTableWidgetItem("0x00000001"));
+	
+	//TODO: When regstable is functional, run this after register table is filled out to make sure it looks right
+	regstable->resizeRowsToContents();
+	regstable->resizeColumnsToContents();
+	return;
 }
 
 void
@@ -216,8 +239,15 @@ void Debugger::drawCPUInfo(QPaintEvent *event) {
 	return;
 }
 
+void Debugger::drawRegs(QPaintEvent *event) {
+	//TODO
+	return;
+}
+
 void Debugger::paintEvent(QPaintEvent *event) {
 	QPainter painter(this);
 	drawCPUInfo(event);
+	drawRegs(event);
+	
 	return;
 }

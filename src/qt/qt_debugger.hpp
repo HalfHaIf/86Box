@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QLabel>
 #include <QMap>
-#include <QTranslator>
+#include <QTableWidget>
 
 namespace Ui {
 class Debugger;
@@ -27,10 +27,14 @@ private:
     Ui::Debugger *ui;
 	QMap<QString, QLabel*> cpu_labels;
 	QList<QLabel*> qlist_buf;
+	QTableWidget* regstable;
 	
 	friend class MainWindow;
 	 
+	
 	void drawCPUInfo(QPaintEvent *event);
+	void drawRegs(QPaintEvent *event);
+	void initRegsTable();
 };
 
 #endif // QT_DEBUGGER_HPP

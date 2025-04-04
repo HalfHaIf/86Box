@@ -164,6 +164,29 @@
         </property>
        </widget>
       </widget>
+      <widget class="QGroupBox" name="regsInfo">
+       <property name="geometry">
+        <rect>
+         <x>600</x>
+         <y>0</y>
+         <width>111</width>
+         <height>181</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Registers</string>
+       </property>
+       <widget class="QTableWidget" name="regsTable">
+        <property name="geometry">
+         <rect>
+          <x>5</x>
+          <y>21</y>
+          <width>101</width>
+          <height>151</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
      </widget>
     </widget>
    </item>
