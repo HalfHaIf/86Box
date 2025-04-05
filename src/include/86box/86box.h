@@ -225,6 +225,7 @@ extern void pc_send_cad(void);
 extern void pc_send_cae(void);
 extern void pc_send_cab(void);
 extern void pc_run(void);
+extern void pc_step(void);
 extern void pc_start(void);
 extern void pc_onesec(void);
 

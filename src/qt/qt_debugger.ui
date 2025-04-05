@@ -220,6 +220,52 @@
         <bool>true</bool>
        </property>
       </widget>
+      <widget class="QPushButton" name="stepInto">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>190</y>
+         <width>21</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../qt_resources.qrc">
+         <normaloff>:/menuicons/qt/icons/stepinto.ico</normaloff>:/menuicons/qt/icons/stepinto.ico</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>true</bool>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="stepOver">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>190</y>
+         <width>21</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../qt_resources.qrc">
+         <normaloff>:/menuicons/qt/icons/stepover.ico</normaloff>:/menuicons/qt/icons/stepover.ico</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>true</bool>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
     </widget>
    </item>

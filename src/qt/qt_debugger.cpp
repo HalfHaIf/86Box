@@ -115,6 +115,14 @@ void Debugger::on_pauseButton_clicked() {
 	ui->pauseButton->setIcon(pause_icon);
 }
 
+void Debugger::on_stepInto_clicked() {
+	pc_step();
+}
+
+void Debugger::on_stepOver_clicked() {
+	pc_step();
+}
+
 Debugger::Debugger(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::Debugger)
@@ -134,8 +142,13 @@ Debugger::Debugger(QWidget *parent)
 	
 	initRegsTable();
 	
+	paused = false;
+	
 	connect(ui->pauseButton, &QPushButton::clicked, this, &on_pauseButton_clicked);
-
+	connect(ui->stepInto, &QPushButton::clicked, this, &on_stepInto_clicked);
+	connect(ui->stepOver, &QPushButton::clicked, this, &on_stepOver_clicked);
+	
+	
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, QOverload<>::of(&QWidget::update));
     timer->start(16); // TODO: Implement option to be able to change redraw rate with dropdown box

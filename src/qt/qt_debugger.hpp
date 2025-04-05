@@ -32,6 +32,8 @@ private:
 	QList<QLabel*> qlist_buf;
 	QTableWidget* regstable;
 	
+	bool paused;
+	
 	friend class MainWindow;
 	 
 	
@@ -41,6 +43,8 @@ private:
 	void updateRegsTable(QString reg_name, int reg_width);
 	
 	void on_pauseButton_clicked();
+	void on_stepInto_clicked();
+	void on_stepOver_clicked();
 };
 
 #endif // QT_DEBUGGER_HPP

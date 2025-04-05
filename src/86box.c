@@ -1609,6 +1609,59 @@ pc_run(void)
     }
 }
 
+// Used for the "Step Into" command in the CPU/RAM debugger.
+void
+pc_step(void)
+{
+    int     mouse_msg_idx;
+    wchar_t temp[200];
+
+    /* Trigger a hard reset if one is pending. */
+    if (hard_reset_pending) {
+        hard_reset_pending = 0;
+        pc_reset_hard_close();
+        pc_reset_hard_init();
+    }
+
+    /* Update the guest-CPU independent timer for devices with independent clock speed */
+    rivatimer_update_all();
+
+    /* Run a block of code. */
+    startblit();
+    cpu_exec((int32_t) cpu_s->rspeed / 100);
+    //ack_pause();
+#ifdef USE_GDBSTUB /* avoid a KBC FIFO overflow when CPU emulation is stalled */
+    if (gdbstub_step == GDBSTUB_EXEC) {
+#endif
+        if (!mouse_timed)
+            mouse_process();
+#ifdef USE_GDBSTUB /* avoid a KBC FIFO overflow when CPU emulation is stalled */
+    }
+#endif
+    joystick_process();
+    endblit();
+
+    /* Done with this frame, update statistics. */
+    framecount++;
+    if (++framecountx >= 100) {
+        framecountx = 0;
+        frames      = 0;
+    }
+
+    if (title_update) {
+        mouse_msg_idx = ((mouse_type == MOUSE_TYPE_NONE) || (mouse_input_mode >= 1)) ? 2 : !!mouse_capture;
+        swprintf(temp, sizeof_w(temp), mouse_msg[mouse_msg_idx], fps);
+#ifdef __APPLE__
+        /* Needed due to modifying the UI on the non-main thread is a big no-no. */
+        dispatch_async_f(dispatch_get_main_queue(), wcsdup((const wchar_t *) temp), _ui_window_title);
+#else
+        ui_window_title(temp);
+#endif
+        title_update = 0;
+    }
+}
+
+
 /* Handler for the 1-second timer to refresh the window title. */
 void
 pc_onesec(void)
